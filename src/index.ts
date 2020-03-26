@@ -1,19 +1,12 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-import { Order } from '@0x/types';
 import {DummyERC20TokenContract} from '@0x/contracts-erc20';
-import { generatePseudoRandomSalt, assetDataUtils, signatureUtils } from '@0x/order-utils'
 import { SupportedProvider, Web3Wrapper, TxData } from '@0x/web3-wrapper';
 import { getContractAddressesForChainOrThrow, ChainId } from '@0x/contract-addresses'
 import { MetamaskSubprovider, Web3ProviderEngine, RPCSubprovider } from '@0x/subproviders'
-import {BigNumber, NULL_ADDRESS } from '@0x/utils';
+import {BigNumber } from '@0x/utils';
 import axios from 'axios';
-import { DEFAULT_MINT_AMOUNT, KOVAN_0x_API, INFINITE_ALLOWANCE, IN_A_YEAR, FAKE_DAI, FAKE_USDC, ZERO, DEFAULT_GAS_PRICE, MetamaskWindow, INFURA_RPC_URL } from './misc';
-
-const DEFAULT_MINT_AMOUNT = new BigNumber(10_000);
-const FAKE_DAI = '0x48178164eB4769BB919414Adc980b659a634703E';
-const FAKE_USDC = '0x5a719Cf3E02c17c876F6d294aDb5CB7C6eB47e2F';
-const INFINITE_ALLOWANCE = new BigNumber(2).pow(256).minus(1);
+import { KOVAN_0x_API, FAKE_DAI, FAKE_USDC, MetamaskWindow, INFURA_RPC_URL, DEFAULT_MINT_AMOUNT, INFINITE_ALLOWANCE } from './misc';
 
 async function mintTokens(fromAddress: string, tokenAddress: string, provider: SupportedProvider, mintAmount: BigNumber = DEFAULT_MINT_AMOUNT): Promise<string> {
     const contractInstance = new DummyERC20TokenContract(tokenAddress, provider);
@@ -34,7 +27,7 @@ async function getDecimalsForToken(tokenAddress: string, provider: SupportedProv
 
 async function performSwap(buyToken: string, sellToken: string, amountInUnitAmount: number, fromAddress: string, client: Web3Wrapper): Promise<string> {
     // Fetch decimals
-    const numDecimals = await getDecimalsForToken(buyToken, client.getProvider());
+    const numDecimals = await getDecimalsForToken(sellToken, client.getProvider());
     const sellAmountInBaseUnits = Web3Wrapper.toBaseUnitAmount(amountInUnitAmount, numDecimals);
 
     // Make API request
@@ -58,13 +51,6 @@ async function setAllowances(fromAddress: string, tokenAddress: string, provider
     });
     return tx.transactionHash;
 }
-
-interface MetamaskWindow {
-    ethereum?: {
-        enable(): Promise<[string]>
-    }
-}
-
 
 /**
  * Links the `onclick` event of a button denoted by ID to a callback
