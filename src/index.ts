@@ -1,10 +1,14 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 
+import { Order } from '@0x/types';
 import {DummyERC20TokenContract} from '@0x/contracts-erc20';
+import { generatePseudoRandomSalt, assetDataUtils, signatureUtils } from '@0x/order-utils'
 import { SupportedProvider, Web3Wrapper, TxData } from '@0x/web3-wrapper';
 import { getContractAddressesForChainOrThrow, ChainId } from '@0x/contract-addresses'
-import {BigNumber } from '@0x/utils';
+import { MetamaskSubprovider, Web3ProviderEngine, RPCSubprovider } from '@0x/subproviders'
+import {BigNumber, NULL_ADDRESS } from '@0x/utils';
 import axios from 'axios';
+import { DEFAULT_MINT_AMOUNT, KOVAN_0x_API, INFINITE_ALLOWANCE, IN_A_YEAR, FAKE_DAI, FAKE_USDC, ZERO, DEFAULT_GAS_PRICE, MetamaskWindow, INFURA_RPC_URL } from './misc';
 
 const DEFAULT_MINT_AMOUNT = new BigNumber(10_000);
 const FAKE_DAI = '0x48178164eB4769BB919414Adc980b659a634703E';
@@ -22,14 +26,19 @@ async function mintTokens(fromAddress: string, tokenAddress: string, provider: S
     return tx.transactionHash;
 }
 
+async function getDecimalsForToken(tokenAddress: string, provider: SupportedProvider): Promise<number> {
+    const contractInstance = new DummyERC20TokenContract(tokenAddress, provider);
+    const decimals = await contractInstance.decimals().callAsync()
+    return decimals.toNumber();
+}
+
 async function performSwap(buyToken: string, sellToken: string, amountInUnitAmount: number, fromAddress: string, client: Web3Wrapper): Promise<string> {
     // Fetch decimals
-    const contractInstance = new DummyERC20TokenContract(sellToken, client.getProvider());
-    const numDecimals = await contractInstance.decimals().callAsync();
-    const sellAmountInBaseUnits = Web3Wrapper.toBaseUnitAmount(amountInUnitAmount, numDecimals.toNumber());
+    const numDecimals = await getDecimalsForToken(buyToken, client.getProvider());
+    const sellAmountInBaseUnits = Web3Wrapper.toBaseUnitAmount(amountInUnitAmount, numDecimals);
 
     // Make API request
-    const response = await axios.get<TxData>(`https://kovan.api.0x.org/swap/v0/quote?buyToken=${buyToken}&sellToken=${sellToken}&sellAmount=${sellAmountInBaseUnits}&takerAddress=${fromAddress}`);
+    const response = await axios.get<TxData>(`${KOVAN_0x_API}/swap/v0/quote?buyToken=${buyToken}&sellToken=${sellToken}&sellAmount=${sellAmountInBaseUnits}&takerAddress=${fromAddress}`);
 
     const tx = await client.sendTransactionAsync({
         ...response.data,
@@ -78,11 +87,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     // enable MetaMask. `ethereum.approve()` will open a dialog on the UI that will ask for your permission.
 
     // NOTE: we have to cast `window` to `MetamaskWindow` in order to TypeScript to work correctly.
-    const scopedWindow = window as MetamaskWindow;
+    const scopedWindow = window as unknown as MetamaskWindow;
     if (scopedWindow.ethereum === undefined) {
         throw new Error('Web3 not defined, please install and unlock Metamask');
     }
     const [account] = await scopedWindow.ethereum.enable();
+    scopedWindow.ethereum.on('accountsChanged', () => location.reload());
+
+    const providerEngine = new Web3ProviderEngine();
+    providerEngine.addProvider(new MetamaskSubprovider(scopedWindow.web3.currentProvider));
+    providerEngine.addProvider(new RPCSubprovider(INFURA_RPC_URL));
+    providerEngine.start();
 
     // We initialize the Web3Wrapper, which is 0x's alternative to Web3.js library.
     const client = new Web3Wrapper(scopedWindow.ethereum as unknown as SupportedProvider);
