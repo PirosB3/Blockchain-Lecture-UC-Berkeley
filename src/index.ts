@@ -100,7 +100,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     providerEngine.start();
 
     // We initialize the Web3Wrapper, which is 0x's alternative to Web3.js library.
-    const client = new Web3Wrapper(scopedWindow.ethereum as unknown as SupportedProvider);
+    const client = new Web3Wrapper(providerEngine);
     const chainId = await client.getChainIdAsync();
     if (chainId !== 42) {
         throw new Error(`Chain ID should be set to Kovan, it was set to ${chainId}`);
