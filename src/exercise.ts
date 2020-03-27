@@ -24,7 +24,7 @@ export async function getDecimalsForTokenAsync(tokenAddress: string, provider: S
  * @param fromAddress the address that will perform the transaction
  * @param client the Web3Wrapper client
  */
-export async function performSwapAsync(buyToken: string, sellToken: string, amountToSellUnitAmount: number, fromAddress: string, client: Web3Wrapper): Promise<string> {
+export async function performSwapAsync(buyToken: string, sellToken: string, amountToSellUnitAmount: number, fromAddress: string, client: Web3Wrapper): Promise<void> {
     // Step #1) Convert the unit amount into base unit amount (bigint). For this to happen you need the number of decimals the token.
     // Fetch decimals using the getDecimalsForToken(), and use Web3Wrapper.toBaseUnitAmount() to perform the conversion
     const numDecimals = await getDecimalsForTokenAsync(sellToken, client.getProvider());
@@ -43,7 +43,7 @@ export async function performSwapAsync(buyToken: string, sellToken: string, amou
         console.log(apiResponse);
     } catch (e) {
         alert(`0x API returned an invalid response, this means your allowance may not be set up or your balance is not enough to complete the trade.`)
-        return '';
+        return
     }
 
     // Step #3) You can `client.sendTransactionAsync()` to send a Ethereum transaction.
@@ -60,7 +60,6 @@ export async function performSwapAsync(buyToken: string, sellToken: string, amou
     // to block until the transaction has been mined.
     const receipt = await client.awaitTransactionSuccessAsync(tx)
     console.log(`Transaction ${receipt.transactionHash} was mined successfully`)
-    return receipt.transactionHash;
 }
 
 /**
@@ -70,7 +69,7 @@ export async function performSwapAsync(buyToken: string, sellToken: string, amou
  * @param provider a supported provider
  * @param mintAmount the amount to mint in unit amount
  */
-export async function setAllowances(fromAddress: string, tokenAddress: string, provider: SupportedProvider, allowanceAmount: BigNumber = DEFAULT_ALLOWANCE_AMOUNT): Promise<string> {
+export async function setAllowances(fromAddress: string, tokenAddress: string, provider: SupportedProvider, allowanceAmount: BigNumber = DEFAULT_ALLOWANCE_AMOUNT): Promise<void> {
     const tokenDecimals = await getDecimalsForTokenAsync(tokenAddress, provider);
 
     // Initialize a new DummyERC20TokenContract instance, and call the `decimals()` function on the contract.
@@ -84,5 +83,4 @@ export async function setAllowances(fromAddress: string, tokenAddress: string, p
     ).awaitTransactionSuccessAsync({
         from: fromAddress,
     });
-    return tx.transactionHash;
 }

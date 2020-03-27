@@ -4,7 +4,7 @@ import {DummyERC20TokenContract} from '@0x/contracts-erc20';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import { MetamaskSubprovider, Web3ProviderEngine, RPCSubprovider } from '@0x/subproviders'
 import { FAKE_DAI, FAKE_USDC, MetamaskWindow, INFURA_RPC_URL, DEFAULT_MINT_AMOUNT, linkBtnToCallback, mintTokens } from './misc';
-import { setAllowances, performSwap, getDecimalsForToken } from './exercise';
+import { setAllowances, performSwapAsync, getDecimalsForTokenAsync } from './exercise';
 
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -42,11 +42,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     linkBtnToCallback("mintUSDC", () => mintTokens(account, FAKE_USDC, provider, DEFAULT_MINT_AMOUNT));
     linkBtnToCallback("allowDAI", () => setAllowances(account, FAKE_DAI, provider));
     linkBtnToCallback("allowUSDC", () => setAllowances(account, FAKE_USDC, provider));
-    linkBtnToCallback("swapDaiForUsdc", () => performSwap(FAKE_USDC, FAKE_DAI, 100, account, client));
-    linkBtnToCallback("swapUsdcForDai", () => performSwap(FAKE_DAI, FAKE_USDC, 100, account, client));
+    linkBtnToCallback("swapDaiForUsdc", () => performSwapAsync(FAKE_USDC, FAKE_DAI, 100, account, client));
+    linkBtnToCallback("swapUsdcForDai", () => performSwapAsync(FAKE_DAI, FAKE_USDC, 100, account, client));
 
-    const daiDecimals = await getDecimalsForToken(FAKE_DAI, provider);
-    const usdcDecimals = await getDecimalsForToken(FAKE_USDC, provider);
+    const daiDecimals = await getDecimalsForTokenAsync(FAKE_DAI, provider);
+    const usdcDecimals = await getDecimalsForTokenAsync(FAKE_USDC, provider);
     setInterval(async () => {
         const daiToken = new DummyERC20TokenContract(FAKE_DAI, provider);
         const usdcToken = new DummyERC20TokenContract(FAKE_USDC, provider);
