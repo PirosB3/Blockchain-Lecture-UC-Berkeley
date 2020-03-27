@@ -43,6 +43,19 @@ export function linkBtnToCallback(buttonId: string, callback: (...args: any[]) =
     button.onclick = callback;
 }
 
+/**
+ * A simple utility to set text on to a ID
+ * @param buttonId the button ID as a string, must be unique
+ * @param text a string to set
+ */
+export function setTextOnDOMElement(buttonId: string, text: string): void {
+    const button = document.getElementById(buttonId);
+    if (button === null) {
+        throw new Error(`Button ${buttonId} was not found`);
+    }
+    button.innerText = text;
+}
+
 
 /**
  * A simple utility that can be used to mint tokens. The DummyERC20Token contract exposes a special

@@ -3,8 +3,9 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import {DummyERC20TokenContract} from '@0x/contracts-erc20';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import { MetamaskSubprovider, Web3ProviderEngine, RPCSubprovider } from '@0x/subproviders'
-import { FAKE_DAI, FAKE_USDC, MetamaskWindow, INFURA_RPC_URL, DEFAULT_MINT_AMOUNT, linkBtnToCallback, mintTokens } from './misc';
+import { FAKE_DAI, FAKE_USDC, MetamaskWindow, INFURA_RPC_URL, DEFAULT_MINT_AMOUNT, linkBtnToCallback, mintTokens, setTextOnDOMElement } from './misc';
 import { setAllowances, performSwapAsync, getDecimalsForTokenAsync } from './exercise';
+import { getContractAddressesForChainOrThrow, ChainId } from '@0x/contract-addresses';
 
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -45,6 +46,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     linkBtnToCallback("swapDaiForUsdc", () => performSwapAsync(FAKE_USDC, FAKE_DAI, 100, account, client));
     linkBtnToCallback("swapUsdcForDai", () => performSwapAsync(FAKE_DAI, FAKE_USDC, 100, account, client));
 
+    const zeroExDeployedAddresses = getContractAddressesForChainOrThrow(ChainId.Kovan);
     const daiDecimals = await getDecimalsForTokenAsync(FAKE_DAI, provider);
     const usdcDecimals = await getDecimalsForTokenAsync(FAKE_USDC, provider);
     setInterval(async () => {
@@ -53,14 +55,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const daiBalance = await daiToken.balanceOf(account).callAsync()
         const usdcBalance = await usdcToken.balanceOf(account).callAsync()
+        const daiAllowance = await daiToken.allowance(account, zeroExDeployedAddresses.erc20Proxy).callAsync();
+        const usdcAllowance = await usdcToken.allowance(account, zeroExDeployedAddresses.erc20Proxy).callAsync();
 
-        const fakeDaiBalanceText = document.getElementById('fakeDaiBalance');
-        if (fakeDaiBalanceText !== null) {
-            fakeDaiBalanceText.innerText = Web3Wrapper.toUnitAmount(daiBalance, daiDecimals).toString();
-        }
-        const fakeUsdcBalanceText = document.getElementById('fakeUsdcBalance');
-        if (fakeUsdcBalanceText !== null) {
-            fakeUsdcBalanceText.innerText = Web3Wrapper.toUnitAmount(usdcBalance, usdcDecimals).toString();
-        }
+        setTextOnDOMElement('fakeDaiBalance', Web3Wrapper.toUnitAmount(daiBalance, daiDecimals).toString());
+        setTextOnDOMElement('fakeUsdcBalance', Web3Wrapper.toUnitAmount(usdcBalance, usdcDecimals).toString());
+        setTextOnDOMElement('fakeDaiAllowance', Web3Wrapper.toUnitAmount(daiAllowance, daiDecimals).toString());
+        setTextOnDOMElement('fakeUsdcAllowance', Web3Wrapper.toUnitAmount(usdcAllowance, usdcDecimals).toString());
     }, 2000)
 });
