@@ -10,8 +10,9 @@ const zeroExDeployedAddresses = getContractAddressesForChainOrThrow(ChainId.Kova
  * @param provider the supported provider
  */
 export async function getDecimalsForTokenAsync(tokenAddress: string, provider: SupportedProvider): Promise<number> {
-    // Initialize a new DummyERC20TokenContract instance, and call the `decimals()` function on the contract.
+    // Step #1: Initialize a new DummyERC20TokenContract instance,
     const contractInstance = new DummyERC20TokenContract(tokenAddress, provider);
+    // Step #2: call the `decimals()` function on the contract, and return the vaue.
     const decimals = await contractInstance.decimals().callAsync()
     return decimals.toNumber();
 }
@@ -72,10 +73,10 @@ export async function performSwapAsync(buyToken: string, sellToken: string, amou
 export async function setAllowances(fromAddress: string, tokenAddress: string, provider: SupportedProvider, allowanceAmount: BigNumber = DEFAULT_ALLOWANCE_AMOUNT): Promise<void> {
     const tokenDecimals = await getDecimalsForTokenAsync(tokenAddress, provider);
 
-    // Initialize a new DummyERC20TokenContract instance, and call the `decimals()` function on the contract.
+    // Step #1) Initialize a new DummyERC20TokenContract instance, and call the `decimals()` function on the contract.
     const contractInstance = new DummyERC20TokenContract(tokenAddress, provider);
 
-    // In order to allow the 0x smart contracts to trade with your funds, you need to set an allowance for zeroExDeployedAddresses.erc20Proxy. This
+    // Step #2) In order to allow the 0x smart contracts to trade with your funds, you need to set an allowance for zeroExDeployedAddresses.erc20Proxy. This
     // can be done using the `approve` function.
     const tx = await contractInstance.approve(
         zeroExDeployedAddresses.erc20Proxy,
