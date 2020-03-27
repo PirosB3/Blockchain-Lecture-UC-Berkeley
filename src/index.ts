@@ -34,10 +34,16 @@ async function performSwap(buyToken: string, sellToken: string, amountToSellUnit
     console.log(`Requesting 0x API to provide a quote for swapping ${sellAmountInBaseUnits} of ${MAP_TOKEN_TO_NAME[sellToken]} for ${MAP_TOKEN_TO_NAME[buyToken]}`)
 
     // Make API request
-    const httpResponse = await axios.get<TxData>(`${KOVAN_0x_API}/swap/v0/quote?buyToken=${buyToken}&sellToken=${sellToken}&sellAmount=${sellAmountInBaseUnits}&takerAddress=${fromAddress}`);
-    const apiResponse = httpResponse.data;
-    console.log(`Received a response from the 0x API:`)
-    console.log(apiResponse);
+    let apiResponse: TxData;
+    try {
+        const httpResponse = await axios.get<TxData>(`${KOVAN_0x_API}/swap/v0/quote?buyToken=${buyToken}&sellToken=${sellToken}&sellAmount=${sellAmountInBaseUnits}&takerAddress=${fromAddress}`);
+        console.log(`Received a response from the 0x API:`)
+        apiResponse = httpResponse.data;
+        console.log(apiResponse);
+    } catch (e) {
+        alert(`0x API returned an invalid response, this means your allowance may not be set up or your balance is not enough to complete the trade.`)
+        return '';
+    }
 
     // Perform the transaction on-chain
     const tx = await client.sendTransactionAsync({
@@ -110,4 +116,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     linkBtnToCallback("allowUSDC", () => setAllowances(account, FAKE_USDC, provider));
     linkBtnToCallback("swapDaiForUsdc", () => performSwap(FAKE_USDC, FAKE_DAI, 100, account, client));
     linkBtnToCallback("swapUsdcForDai", () => performSwap(FAKE_DAI, FAKE_USDC, 100, account, client));
+
+    const daiDecimals = await getDecimalsForToken(FAKE_DAI, provider);
+    const usdcDecimals = await getDecimalsForToken(FAKE_USDC, provider);
+    setInterval(async () => {
+        const daiToken = new DummyERC20TokenContract(FAKE_DAI, provider);
+        const usdcToken = new DummyERC20TokenContract(FAKE_USDC, provider);
+
+        const daiBalance = await daiToken.balanceOf(account).callAsync()
+        const usdcBalance = await usdcToken.balanceOf(account).callAsync()
+
+        const fakeDaiBalanceText = document.getElementById('fakeDaiBalance');
+        if (fakeDaiBalanceText !== null) {
+            fakeDaiBalanceText.innerText = Web3Wrapper.toUnitAmount(daiBalance, daiDecimals).toString();
+        }
+        const fakeUsdcBalanceText = document.getElementById('fakeUsdcBalance');
+        if (fakeUsdcBalanceText !== null) {
+            fakeUsdcBalanceText.innerText = Web3Wrapper.toUnitAmount(usdcBalance, usdcDecimals).toString();
+        }
+    }, 2000)
 });
