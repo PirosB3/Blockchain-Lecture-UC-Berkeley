@@ -59,7 +59,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         const usdcAllowance = await usdcToken.allowance(account, zeroExDeployedAddresses.erc20Proxy).callAsync();
         const usdcAllowanceText = usdcAllowance.gt(0) ? '✅' : '⛔️';
         const daiAllowanceText = daiAllowance.gt(0) ? '✅' : '⛔️';
-        console.log(daiAllowance)
 
         setTextOnDOMElement('fakeDaiBalance', Web3Wrapper.toUnitAmount(daiBalance, daiDecimals.toNumber()).decimalPlaces(2).toString());
         setTextOnDOMElement('fakeUsdcBalance', Web3Wrapper.toUnitAmount(usdcBalance, usdcDecimals.toNumber()).decimalPlaces(2).toString());
