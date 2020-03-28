@@ -1,7 +1,13 @@
+// ⚠️ This file contains a lot of misc functions/interfaces/helper functions that have been made to reduce
+// some of the complexity of Ethereum.
+
 import { BigNumber } from "@0x/utils";
 import { SignedOrder } from "@0x/types";
 import { SupportedProvider, Web3Wrapper } from "@0x/web3-wrapper";
 import { DummyERC20TokenContract } from "@0x/contracts-erc20";
+
+// Hack! The `ERC20TokenContract` in "@0x/contracts-erc20" does not have `decimals()`, so I am using
+// an internal contract that is called `DummyERC20TokenContract` instead.
 export { DummyERC20TokenContract as ERC20TokenContract } from "@0x/contracts-erc20";
 
 
