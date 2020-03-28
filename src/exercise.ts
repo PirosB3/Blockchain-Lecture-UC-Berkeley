@@ -1,10 +1,39 @@
 import axios from 'axios';
 import { Web3Wrapper, TxData, SupportedProvider } from "@0x/web3-wrapper";
-import { ERC20TokenContract, GetSwapQuoteResponse, ZeroExSwapAPIParams } from "./misc";
+import { GetSwapQuoteResponse, ZeroExSwapAPIParams, ERC20TokenContract } from "./misc";
 import { getContractAddressesForChainOrThrow, ChainId } from "@0x/contract-addresses";
 import { BigNumber } from '@0x/utils';
+import { Web3ProviderEngine } from '@0x/subproviders';
 
 const zeroExDeployedAddresses = getContractAddressesForChainOrThrow(ChainId.Kovan);
+
+
+async function introToERC20TokenContract(web3Provider: Web3ProviderEngine): Promise<void> {
+    // A quick example of ERC20TokenContract
+
+    // Initializing a new instance of ERC20TokenContract
+    const tokenAddress = '0x48178164eB4769BB919414Adc980b659a634703E' // Address of fake DAI token
+    const tokenContract: ERC20TokenContract = new ERC20TokenContract(tokenAddress, web3Provider);
+
+    // Reading a value on the blockchain does NOT require a transaction.
+    const name = await tokenContract.name().callAsync()
+    const decimals = await tokenContract.decimals().callAsync()
+    const balance = await tokenContract.balanceOf('0xSomeAddress').callAsync()
+
+    console.log(name) // DAI
+    console.log(decimals) // 18
+    console.log(balance) // 100000000000000000000
+
+    // Writing a value on the blockchain 
+    await tokenContract.transfer(
+        '0xSomeOtherAddress',
+        new BigNumber(100000000000000000000),
+    ).awaitTransactionSuccessAsync({
+        from: '0xMyAddress',
+    });
+}
+
+
 
 /**
  * Converts a humanly-readable number (that may contain decimals, example: 133.232) into a big integer.

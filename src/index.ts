@@ -11,6 +11,7 @@ import { getContractAddressesForChainOrThrow, ChainId } from '@0x/contract-addre
 document.addEventListener("DOMContentLoaded", async () => {
 
     // SETUP: We check to ensure that Metamask is available. Based on the documentation
+    // When MetaMask is available, it injects the `window.ethereum` function.
     // we have [here](https://docs.metamask.io/guide/getting-started.html), they recommend
     // to check if `window.ethereum` is available and, if it is, we can use `window.ethereum.enable()` to
     // enable MetaMask. `ethereum.approve()` will open a dialog on the UI that will ask for your permission.
