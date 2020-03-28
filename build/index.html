@@ -3,6 +3,7 @@
 
 <head>
 
+  <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta name="description" content="">
@@ -18,45 +19,66 @@
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark static-top">
     <div class="container">
       <a class="navbar-brand" href="#">Blockchain @ Berkeley deep dive into 0x API</a>
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarResponsive">
-        <ul class="navbar-nav ml-auto">
-          <li class="nav-item active">
-            <a class="nav-link" href="#">Home
-              <span class="sr-only">(current)</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">About</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">Services</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">Contact</a>
-          </li>
-        </ul>
-      </div>
     </div>
   </nav>
 
   <!-- Page Content -->
   <div class="container">
     <div class="row">
-      <div class="col-lg-12 text-center">
-        <h1 class="mt-5">Swap DAI and USDC using the 0x API</h1>
-        <p class="lead">Fake DAI balance: <b id="fakeDaiBalance">N/A</b></p>
-        <p class="lead">Fake USDC balance: <b id="fakeUsdcBalance">N/A</b></p>
-        <p class="lead">Fake DAI allowance (to the 0x Exchange): <b id="fakeDaiAllowance">N/A</b></p>
-        <p class="lead">Fake USDC allowance (to the 0x Exchange): <b id="fakeUsdcAllowance">N/A</b></p>
-        <button id="mintDAI" type="button" class="btn btn-success">Mint Fake DAI</button>
-        <button id="mintUSDC" type="button" class="btn btn-success">Mint Fake USDC</button>
-        <button id="allowDAI" type="button" class="btn btn-primary">Allow 0x to withdraw DAI</button>
-        <button id="allowUSDC" type="button" class="btn btn-primary">Allow 0x to withdraw USDC</button>
-        <button id="swapDaiForUsdc" type="button" class="btn btn-danger">Sell 100 DAI for USDC</button>
-        <button id="swapUsdcForDai" type="button" class="btn btn-danger">Sell 100 USDC for DAI</button>
+      <div class="container">
+        <div class="row main">
+          <div class="col-5">
+            <div class="row exchange">
+              <div class="col-12">
+                <div class="row py-3 px-lg-4 exchange-header">
+                  <b>Your balance</b>
+                </div>
+                <div class="row exchange-currency">
+                  <div class="col-2 exchange-logo">
+                    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <g filter="url(#filter0_d)">
+                        <path
+                          d="M32 59C47.464 59 60 46.464 60 31C60 15.536 47.464 3 32 3C16.536 3 4 15.536 4 31C4 46.464 16.536 59 32 59Z"
+                          fill="white" />
+                        <path d="M31.9968 9.37878L53.4431 30.825L31.9968 52.2713L10.5506 30.825L31.9968 9.37878Z"
+                          fill="#FFCE45" />
+                        <path d="M31.9965 37.8232L10.5327 30.8232L31.9965 9.37699L53.4602 30.825L31.9965 37.8232Z"
+                          fill="#FEBE44" />
+                        <path
+                          d="M17.9982 29.425H27.7982L31.9965 24.7577L36.662 29.4232H46.462L31.9965 13.7922L17.9982 29.425Z"
+                          fill="white" />
+                        <path opacity="0.42" d="M31.9965 52.2695V9.37699L53.4427 30.825L31.9965 52.2695Z"
+                          fill="#D9A547" />
+                      </g>
+                      <defs>
+                        <filter id="filter0_d" x="0" y="0" width="64" height="64" filterUnits="userSpaceOnUse"
+                          color-interpolation-filters="sRGB">
+                          <feFlood flood-opacity="0" result="BackgroundImageFix" />
+                          <feColorMatrix in="SourceAlpha" type="matrix"
+                            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
+                          <feOffset dy="1" />
+                          <feGaussianBlur stdDeviation="2" />
+                          <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.2 0" />
+                          <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow" />
+                          <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape" />
+                        </filter>
+                      </defs>
+                    </svg>
+                  </div>
+                  <div class="col-2 exchange-currency-name align-middle">
+                    DAI
+                  </div>
+                  <div class="col-2 offset-md-4 exchange-currency-value">
+                    19000
+                  </div>
+                  <div class="col-2 exchange-currency-plus">
+                    <button class="rounded-circle">+</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
