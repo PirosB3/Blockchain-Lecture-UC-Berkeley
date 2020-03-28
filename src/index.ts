@@ -1,10 +1,9 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './style.css'
 
-import {DummyERC20TokenContract} from '@0x/contracts-erc20';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import { MetamaskSubprovider, Web3ProviderEngine, RPCSubprovider } from '@0x/subproviders'
-import { FAKE_DAI, FAKE_USDC, MetamaskWindow, INFURA_RPC_URL, DEFAULT_MINT_AMOUNT, linkBtnToCallback, mintTokens, setTextOnDOMElement } from './misc';
+import { FAKE_DAI, FAKE_USDC, MetamaskWindow, INFURA_RPC_URL, DEFAULT_MINT_AMOUNT, linkBtnToCallback, mintTokens, setTextOnDOMElement, ERC20TokenContract } from './misc';
 import { performSwapAsync } from './exercise';
 import { getContractAddressesForChainOrThrow, ChainId } from '@0x/contract-addresses';
 
@@ -40,15 +39,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         throw new Error(`Chain ID should be set to Kovan, it was set to ${chainId}`);
     }
 
-    const daiToken = new DummyERC20TokenContract(FAKE_DAI, provider);
-    const usdcToken = new DummyERC20TokenContract(FAKE_USDC, provider);
+    const daiToken = new ERC20TokenContract(FAKE_DAI, provider);
+    const usdcToken = new ERC20TokenContract(FAKE_USDC, provider);
     const daiDecimals = await daiToken.decimals().callAsync();
     const usdcDecimals = await usdcToken.decimals().callAsync();
 
     linkBtnToCallback("mintDAI", () => mintTokens(account, FAKE_DAI, provider, DEFAULT_MINT_AMOUNT));
     linkBtnToCallback("mintUSDC", () => mintTokens(account, FAKE_USDC, provider, DEFAULT_MINT_AMOUNT));
-    linkBtnToCallback("swapDaiForUsdc", () => performSwapAsync(usdcToken, daiToken, 100, account, client));
-    linkBtnToCallback("swapUsdcForDai", () => performSwapAsync(daiToken, usdcToken, 100, account, client));
+    linkBtnToCallback("swapDaiForUsdc", () => performSwapAsync(usdcToken, daiToken, 100, account, provider));
+    linkBtnToCallback("swapUsdcForDai", () => performSwapAsync(daiToken, usdcToken, 100, account, provider));
 
     const zeroExDeployedAddresses = getContractAddressesForChainOrThrow(ChainId.Kovan);
     setInterval(async () => {
@@ -57,12 +56,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         const usdcBalance = await usdcToken.balanceOf(account).callAsync()
         const daiAllowance = await daiToken.allowance(account, zeroExDeployedAddresses.erc20Proxy).callAsync();
         const usdcAllowance = await usdcToken.allowance(account, zeroExDeployedAddresses.erc20Proxy).callAsync();
-        const usdcAllowanceText = usdcAllowance.gt(0) ? '✅' : '⛔️';
-        const daiAllowanceText = daiAllowance.gt(0) ? '✅' : '⛔️';
+        const usdcAllowanceText = Web3Wrapper.toUnitAmount(usdcAllowance, usdcDecimals.toNumber()).decimalPlaces(2);
+        const daiAllowanceText = Web3Wrapper.toUnitAmount(daiAllowance, daiDecimals.toNumber()).decimalPlaces(2);;
 
         setTextOnDOMElement('fakeDaiBalance', Web3Wrapper.toUnitAmount(daiBalance, daiDecimals.toNumber()).decimalPlaces(2).toString());
         setTextOnDOMElement('fakeUsdcBalance', Web3Wrapper.toUnitAmount(usdcBalance, usdcDecimals.toNumber()).decimalPlaces(2).toString());
-        setTextOnDOMElement('fakeDaiAllowance', daiAllowanceText);
-        setTextOnDOMElement('fakeUsdcAllowance', usdcAllowanceText);
+        setTextOnDOMElement('fakeDaiAllowance', daiAllowanceText.toString());
+        setTextOnDOMElement('fakeUsdcAllowance', usdcAllowanceText.toString());
     }, 2000)
 });

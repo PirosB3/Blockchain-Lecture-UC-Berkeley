@@ -1,20 +1,30 @@
 import axios from 'axios';
-import { Web3Wrapper, TxData } from "@0x/web3-wrapper";
-import { KOVAN_0x_API, ERC20TokenContract, INFINITE_ALLOWANCE } from "./misc";
+import { Web3Wrapper, TxData, SupportedProvider } from "@0x/web3-wrapper";
+import { ERC20TokenContract, GetSwapQuoteResponse, ZeroExSwapAPIParams } from "./misc";
 import { getContractAddressesForChainOrThrow, ChainId } from "@0x/contract-addresses";
+import { BigNumber } from '@0x/utils';
 
 const zeroExDeployedAddresses = getContractAddressesForChainOrThrow(ChainId.Kovan);
 
-async function getAllowanceForTokenAsync(fromAddress: string, tokenWrapper: ERC20TokenContract): Promise<number> {
-    const decimals = await tokenWrapper.decimals().callAsync()
-    const remainingAllowance = await tokenWrapper.allowance(fromAddress, zeroExDeployedAddresses.erc20Proxy).callAsync();
-    return Web3Wrapper.toUnitAmount(remainingAllowance, decimals.toNumber()).toNumber();
-}
-
-async function getBalanceForTokenAsync(fromAddress: string, tokenWrapper: ERC20TokenContract): Promise<number> {
-    const decimals = await tokenWrapper.decimals().callAsync()
-    const balance = await tokenWrapper.balanceOf(fromAddress).callAsync();
-    return Web3Wrapper.toUnitAmount(balance, decimals.toNumber()).toNumber();
+/**
+ * Converts a humanly-readable number (that may contain decimals, example: 133.232) into a big integer.
+ * Why do we need this: Ethereum can only only store integer values, so, in order to generate a number
+ * that can be diplayed to users (in a UI), you need to store that number as a big integer + the number of
+ * decimal places.
+ * 
+ * Example:
+ * (USDC has 6 decimals, DAI has 18 decimals)
+ * 
+ * - convertValueFromHumanToEthereum(usdcToken, 5) returns 5000000
+ * - convertValueFromHumanToEthereum(daiToken, 20.5) returns 20500000000000000000
+ * 
+ * @param tokenWrapper an instance of the ERC20 token wrapper
+ * @param unitAmount a number representing the human-readable number
+ * @returns a big integer that can be used to interact with Ethereum
+ */
+async function convertValueFromHumanToEthereum(tokenWrapper: ERC20TokenContract, unitAmount: number): Promise<BigNumber> {
+    const decimals = await tokenWrapper.decimals().callAsync();
+    return Web3Wrapper.toBaseUnitAmount(unitAmount, decimals.toNumber());
 }
 
 /**
@@ -30,60 +40,49 @@ export async function performSwapAsync(
     sellTokenWrapper: ERC20TokenContract,
     amountToSellUnitAmount: number,
     fromAddress: string,
-    client: Web3Wrapper
+    provider: SupportedProvider,
 ): Promise<void> {
 
     // Check #1) Does the user have enough balance?
-    const currentBalance = await getBalanceForTokenAsync(fromAddress, sellTokenWrapper);
-    if (currentBalance < amountToSellUnitAmount) {
-        throw new Error(`Current balance is ${currentBalance}, which is less than ${amountToSellUnitAmount}.`);
+    // Convert the unit amount into base unit amount (bigint). For this to happen you need the number of decimals the token.
+    // Fetch decimals using the getDecimalsForToken(), and use Web3Wrapper.toBaseUnitAmount() to perform the conversion
+    const amountToSellInBaseUnits = await convertValueFromHumanToEthereum(sellTokenWrapper, amountToSellUnitAmount);
+    const sellTokenBalanceInBaseUnit = await sellTokenWrapper.balanceOf(fromAddress).callAsync();
+    if (amountToSellInBaseUnits > sellTokenBalanceInBaseUnit) {
+        throw new Error(`Insufficient funds.`)
     }
 
     // Check #2) Does the 0x ERC20 Proxy have permission to withdraw funds from the exchange?
-    const currentAllowance = await getAllowanceForTokenAsync(fromAddress, sellTokenWrapper);
-    if (currentAllowance < amountToSellUnitAmount) {
-        
+    const currentAllowanceInBaseUnitAmount = await sellTokenWrapper.allowance(fromAddress, zeroExDeployedAddresses.erc20Proxy).callAsync();
+    if (currentAllowanceInBaseUnitAmount < amountToSellInBaseUnits) {
+
         // In order to allow the 0x smart contracts to trade with your funds, you need to set an allowance for zeroExDeployedAddresses.erc20Proxy.
         // This can be done using the `approve` function.
-        await sellTokenWrapper.approve(
-            zeroExDeployedAddresses.erc20Proxy,
-            INFINITE_ALLOWANCE,
-        ).awaitTransactionSuccessAsync({from: fromAddress});
+        const allowance = await convertValueFromHumanToEthereum(sellTokenWrapper, 300);
+        await sellTokenWrapper.approve(zeroExDeployedAddresses.erc20Proxy, allowance).awaitTransactionSuccessAsync({from: fromAddress})
     }
-
-    // Step #1) Convert the unit amount into base unit amount (bigint). For this to happen you need the number of decimals the token.
-    // Fetch decimals using the getDecimalsForToken(), and use Web3Wrapper.toBaseUnitAmount() to perform the conversion
-    const numDecimals = await sellTokenWrapper.decimals().callAsync();
-    const sellAmountInBaseUnits = Web3Wrapper.toBaseUnitAmount(amountToSellUnitAmount, numDecimals.toNumber());
-    console.log(`Requesting 0x API to provide a quote for swapping ${sellAmountInBaseUnits}`)
-
+        
     // Step #2) Make a request to the 0x API swap endpoint: https://0x.org/docs/guides/swap-tokens-with-0x-api#swap-eth-for-1-dai
     // You can use the line below as guidance. In the example, the variable TxData contains the deserialized JSON response from the API.
-    // const httpResponse = await axios.get<TxData>(url)
-    // const txData: TxData = httpResponse.data;
-    let apiResponse: TxData;
-    try {
-        const httpResponse = await axios.get<TxData>(`${KOVAN_0x_API}/swap/v0/quote?buyToken=${buyTokenWrapper.address}&sellToken=${sellTokenWrapper.address}&sellAmount=${sellAmountInBaseUnits}&takerAddress=${fromAddress}`);
-        console.log(`Received a response from the 0x API:`)
-        apiResponse = httpResponse.data;
-        console.log(apiResponse);
-    } catch (e) {
-        alert(`0x API returned an invalid response, this means your allowance may not be set up or your balance is not enough to complete the trade.`)
-        return
+    const url = `https://kovan.api.0x.org/swap/v0/quote`;
+    const params: ZeroExSwapAPIParams = {
+        buyToken: buyTokenWrapper.address,
+        sellToken: sellTokenWrapper.address,
+        sellAmount: amountToSellInBaseUnits.toString(),
+        takerAddress: fromAddress
     }
+    const httpResponse = await axios.get<GetSwapQuoteResponse>(url, { params })
+    const txData: TxData = {
+        from: httpResponse.data.from,
+        to: httpResponse.data.to,
+        data: httpResponse.data.data,
+        gas: httpResponse.data.gas,
+        gasPrice: httpResponse.data.gasPrice,
+        value: httpResponse.data.value,
+    };
+    console.log(txData);
 
     // Step #3) You can `client.sendTransactionAsync()` to send a Ethereum transaction.
-    const tx = await client.sendTransactionAsync({
-        from: fromAddress,
-        to: apiResponse.to,
-        data: apiResponse.data,
-        gas: apiResponse.gas,
-        gasPrice: apiResponse.gasPrice,
-        value: apiResponse.value,
-    })
-
-    // Step #4) `client.sendTransactionAsync()` returns immediately after submitting a transaction with a transaction hash. you may use `client.awaitTransactionSuccessAsync()`
-    // to block until the transaction has been mined.
-    const receipt = await client.awaitTransactionSuccessAsync(tx)
-    console.log(`Transaction ${receipt.transactionHash} was mined successfully`)
+    const client = new Web3Wrapper(provider);
+    await client.sendTransactionAsync(txData);
 }
