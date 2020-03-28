@@ -1,9 +1,10 @@
 import { BigNumber } from "@0x/utils";
 import { SupportedProvider, Web3Wrapper } from "@0x/web3-wrapper";
 import { DummyERC20TokenContract } from "@0x/contracts-erc20";
+export { DummyERC20TokenContract as ERC20TokenContract } from "@0x/contracts-erc20";
 
 export const DEFAULT_MINT_AMOUNT = new BigNumber(10_000);
-export const DEFAULT_ALLOWANCE_AMOUNT = new BigNumber(1_000_000);
+export const DEFAULT_ALLOWANCE_AMOUNT = new BigNumber(300);
 export const FAKE_DAI = '0x48178164eB4769BB919414Adc980b659a634703E';
 export const FAKE_USDC = '0x5a719Cf3E02c17c876F6d294aDb5CB7C6eB47e2F';
 export const INFINITE_ALLOWANCE = new BigNumber(2).pow(256).minus(1);

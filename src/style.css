@@ -1,7 +1,3 @@
-.main {
-    margin-top: 50px;
-}
-
 .exchange-header {
     font-family: Roboto;
     font-style: normal;
@@ -20,7 +16,7 @@
 }
 
 .exchange-currency {
-    background: #FFFFFF;  
+    background: #FFFFFF;
     height: 121px;
     border-bottom: 1px solid #E5E5E5;
 }
@@ -72,4 +68,46 @@
     font-size: 24px;
     line-height: 28px;
     color: #252525;
+}
+
+.debugger {
+    background: #252525;
+    border-radius: 20px;
+    height: 365px;
+}
+
+.debugger-header {
+    font-family: Roboto;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 24px;
+    line-height: 28px;
+    color: #E5E5E5;
+}
+
+.debugger-pane {
+    font-family: Roboto;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 20px;
+    line-height: 23px;
+    /* identical to box height */
+    color: #B0B0B0;
+}
+
+.debugger-pane-amount {
+    font-family: Roboto;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 40px;
+    line-height: 47px;
+    /* identical to box height */
+    color: #FFFFFF;
+}
+
+.debugger-pane-outer {
+    height: 190px;
+    width: 100%;
+    background: #313131;
+    border-radius: 10px;
 }
