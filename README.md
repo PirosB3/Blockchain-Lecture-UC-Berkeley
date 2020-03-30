@@ -36,7 +36,7 @@ This tutorial will be using 2 dummy ERC20 token contracts that I deployed on the
 
 ## Environment setup
 
-This webapp has been tested with Node v10.15.3. Use `npm install` to install all the various dependencies and, after installation finishes successfully, run `npm run serve` to run a live webserver on `http://localhost:9000`. Any chance to the TypeScript code will trigger the webpage to refresh with newly compiled code.
+This webapp has been tested with Node v10.15.3. Use `npm install` to install all the various dependencies and, after installation finishes successfully, run `npm run serve` to run a live webserver on `http://localhost:9000`. Any change to the TypeScript code will trigger the webpage to refresh with newly compiled code.
 
 ## Credits
 
