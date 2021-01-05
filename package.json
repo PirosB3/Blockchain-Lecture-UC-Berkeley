@@ -14,7 +14,7 @@
     "@0x/subproviders": "^6.0.8",
     "@0x/utils": "^5.4.1",
     "@0x/web3-wrapper": "^7.0.7",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "bootstrap": "^4.4.1",
     "css-loader": "^3.4.2",
     "style-loader": "^1.1.3",
